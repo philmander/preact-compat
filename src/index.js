@@ -556,6 +556,8 @@ function Component(props, context, opts) {
 		newComponentHook.call(this, props, context);
 	}
 }
+
+const superSetState = PreactComponent.prototype.setState;
 extend(Component.prototype = new PreactComponent(), {
 	constructor: Component,
 
@@ -568,6 +570,12 @@ extend(Component.prototype = new PreactComponent(), {
 				delete this.state[i];
 			}
 		}
+	},
+
+	setState(state, callback) {
+		setTimeout(() => {
+			superSetState.call(this, state, callback);
+		}, 0);
 	},
 
 	getDOMNode() {

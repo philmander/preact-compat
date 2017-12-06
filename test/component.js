@@ -1,6 +1,14 @@
 import renderToString from 'preact-render-to-string';
 import { rerender } from 'preact';
+import Promise from 'promise-polyfill';
 import React from '../src';
+
+function pause(time = 0) {
+	return new Promise(resolve => {
+		setTimeout(resolve, time);
+	});
+
+}
 
 describe('components', () => {
 	let scratch;
@@ -487,7 +495,7 @@ describe('components', () => {
 			expect(React).to.have.property('PureComponent').that.is.a('function');
 		});
 
-		it('should only re-render when props or state change', () => {
+		it('should only re-render when props or state change', done => {
 			class C extends React.PureComponent {
 				render() {
 					return <div />;
@@ -512,16 +520,28 @@ describe('components', () => {
 
 			inst.setState({ });
 			rerender();
-			expect(spy).not.to.have.been.called;
+			pause(10).then(() => {
+				expect(spy).not.to.have.been.called;
 
-			inst.setState({ a:'a', b });
-			rerender();
-			expect(spy).to.have.been.calledOnce;
-			spy.reset();
+				inst.setState({ a:'a', b });
+				rerender();
+				return pause(10);
+			}).then(() => {
+				expect(spy).to.have.been.calledOnce;
+				spy.reset();
 
-			inst.setState({ a:'a', b });
-			rerender();
-			expect(spy).not.to.have.been.called;
+				inst.setState({ a:'a', b });
+				rerender();
+
+				return pause(10);
+			}).then(() => {
+				expect(spy).not.to.have.been.called;
+				done();
+			}).catch(err => {
+				done.fail(err);
+			});
 		});
 	});
 });
+
+
